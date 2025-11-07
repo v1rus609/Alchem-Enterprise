@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alchem Enterprise | Financial Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 1.3em;
+            font-weight: 300;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .stat-card h3 {
+            color: #cbd5e1;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-change {
+            font-size: 0.95em;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .positive {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .negative {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .star {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .new {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-icon {
+            font-size: 2.2em;
+            margin-right: 20px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 8px rgba(96, 165, 250, 0.3));
+        }
+
+        .chart-title {
+            color: #f8fafc;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .chart-subtitle {
+            color: #94a3b8;
+            font-size: 0.95em;
+            font-weight: 400;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .value-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .total-value {
+            font-size: 2.2em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .total-label {
+            font-size: 0.9em;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .chart-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .chart-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #e2e8f0;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .chart-label:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(96, 165, 250, 0.2);
+        }
+
+        .label-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Tables Grid */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .table-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .table-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa, #60a5fa);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .table-icon {
+            font-size: 2em;
+            margin-right: 15px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .table-title {
+            color: #f8fafc;
+            font-size: 1.4em;
+            font-weight: 700;
+        }
+
+        .table-subtitle {
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+            font-weight: 600;
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .data-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(96, 165, 250, 0.05);
+            transform: translateX(5px);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .sales-value {
+            font-weight: 700;
+            color: #60a5fa;
+            font-size: 1.1em;
+        }
+
+        .performance-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        .glowing { 
+            animation: glow 2s ease-in-out infinite alternate; 
+        }
+
+        .pulse { 
+            animation: pulse 3s infinite; 
+        }
+
+        @keyframes glow {
+            from { 
+                box-shadow: 0 0 25px rgba(96, 165, 250, 0.4),
+                           inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            to { 
+                box-shadow: 0 0 40px rgba(96, 165, 250, 0.8),
+                           inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* Custom chart styling */
+        .chartjs-render-monitor {
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🧪 Alchem Enterprise</h1>
+            <p>Financial Dashboard - September 2025 | Premium Analytics Suite</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card glowing">
+                <h3>September 2025 Total Sales</h3>
+                <div class="stat-value">$75.72M</div>
+                <div class="stat-change positive">▲ 84.6% Growth</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Monthly Achievement</h3>
+                <div class="stat-value">124.8%</div>
+                <div class="stat-change positive">▲ Exceeded Target</div>
+            </div>
+            
+            <div class="stat-card pulse">
+                <h3>Commission Income</h3>
+                <div class="stat-value">$139.4K</div>
+                <div class="stat-change positive">▲ 77.9% Growth</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Active Customers</h3>
+                <div class="stat-value">36</div>
+                <div class="stat-change positive">▲ 45 Orders</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <!-- Enhanced Products Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-icon">📦</div>
+                    <div>
+                        <div class="chart-title">Product Sales Distribution</div>
+                        <div class="chart-subtitle">Top performing products by revenue</div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="productsChart"></canvas>
+                    <div class="value-display">
+                        <div class="total-value">$75.7M</div>
+                        <div class="total-label">Total Sales</div>
+                    </div>
+                </div>
+                <div class="chart-labels" id="productsLabels"></div>
+            </div>
+
+            <!-- Enhanced Commission Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-icon">💰</div>
+                    <div>
+                        <div class="chart-title">Commission Income Breakdown</div>
+                        <div class="chart-subtitle">Revenue sources by supplier</div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="commissionChart" width="1844" height="640" style="position: fixed; right: 20%; display: block; box-sizing: border-box; height: 320px; width: 922px;"></canvas>
+   					<div class="value-display" style="left: 80%;">
+                        <div class="total-value">$139.4K</div>
+                        <div class="total-label">Total Commission</div>
+                    </div>
+                </div>
+                <div class="chart-labels" id="commissionLabels"></div>
+            </div>
+
+            <!-- Additional Charts -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-icon">📈</div>
+                    <div>
+                        <div class="chart-title">Monthly Sales Trend</div>
+                        <div class="chart-subtitle">Last 5 months performance</div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-icon">🏆</div>
+                    <div>
+                        <div class="chart-title">Top Sales Performers</div>
+                        <div class="chart-subtitle">September 2025 leaderboard</div>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="performersChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables Section -->
+        <div class="tables-grid">
+            <!-- Top Customers Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-icon">👑</div>
+                    <div>
+                        <div class="table-title">Top 5 Customers</div>
+                        <div class="table-subtitle">September 2025 Performance</div>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Sales (M)</th>
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="customer-name">ACI</td>
+                            <td class="sales-value">$21.09M</td>
+                            <td><span class="performance-badge positive">▲ 100.7%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Renata PLC</td>
+                            <td class="sales-value">$18.02M</td>
+                            <td><span class="performance-badge positive">▲ 580.4%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Eskayef Pharma</td>
+                            <td class="sales-value">$12.29M</td>
+                            <td><span class="performance-badge positive">▲ 112.6%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Radiant Pharma</td>
+                            <td class="sales-value">$9.20M</td>
+                            <td><span class="performance-badge new">NEW</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Square LifeSciences</td>
+                            <td class="sales-value">$3.74M</td>
+                            <td><span class="performance-badge">0%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Sales Team Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-icon">⭐</div>
+                    <div>
+                        <div class="table-title">Top Sales Team</div>
+                        <div class="table-subtitle">September 2025 Performance</div>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Salesperson</th>
+                            <th>Sales (M)</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="customer-name">Salehin Bin Mahmud</td>
+                            <td class="sales-value">$42.90M</td>
+                            <td><span class="performance-badge star">⭐ Star</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Ahsan Uddin Tushar</td>
+                            <td class="sales-value">$23.83M</td>
+                            <td><span class="performance-badge positive">▲ 131.7%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Rahima Hasan Usha</td>
+                            <td class="sales-value">$5.66M</td>
+                            <td><span class="performance-badge negative">▼ 54.8%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Mohaimen</td>
+                            <td class="sales-value">$1.85M</td>
+                            <td><span class="performance-badge positive">▲ 43.8%</span></td>
+                        </tr>
+                        <tr>
+                            <td class="customer-name">Angon Mridha</td>
+                            <td class="sales-value">$1.48M</td>
+                            <td><span class="performance-badge positive">▲ 132.0%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Custom plugin to display labels on chart segments
+        const segmentLabelPlugin = {
+            id: 'segmentLabels',
+            afterDraw(chart) {
+                const { ctx, data } = chart;
+                const meta = chart.getDatasetMeta(0);
+                
+                meta.data.forEach((segment, index) => {
+                    // Get segment properties
+                    const { x, y } = segment.tooltipPosition();
+                    const value = data.datasets[0].data[index];
+                    const label = data.labels[index];
+                    
+                    // Only show labels for significant segments
+                    if (value > 5) {
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = 'bold 12px Segoe UI';
+                        
+                        // Add text background for better readability
+                        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                        const textWidth = ctx.measureText(label).width;
+                        ctx.fillRect(x - textWidth/2 - 5, y - 10, textWidth + 10, 20);
+                        
+                        // Add text
+                        ctx.fillStyle = '#e2e8f0';
+                        ctx.fillText(label, x, y);
+                        
+                        ctx.restore();
+                    }
+                });
+            }
+        };
+
+        // Enhanced Products Doughnut Chart with direct labels
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        const productsData = {
+            labels: ['Polyplasdone XL', 'Etocas 35', 'PVP Iodine', 'Pharmatose 350M', 'Fujicalin', 'Klucel LF', 'Others'],
+            datasets: [{
+                data: [14.8, 12.7, 6.6, 5.4, 4.5, 4.3, 27.4],
+                backgroundColor: [
+                    '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#34d399', '#fbbf24', '#94a3b8'
+                ],
+                borderWidth: 3,
+                borderColor: '#0f172a',
+                hoverOffset: 25,
+                hoverBorderWidth: 4,
+                hoverBorderColor: '#ffffff'
+            }]
+        };
+
+        new Chart(productsCtx, {
+            type: 'doughnut',
+            data: productsData,
+            plugins: [segmentLabelPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#60a5fa',
+                        bodyColor: '#e2e8f0',
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: $${context.raw}M (${((context.raw/75.7)*100).toFixed(1)}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // Enhanced Commission Pie Chart with direct labels
+        const commissionCtx = document.getElementById('commissionChart').getContext('2d');
+        const commissionData = {
+            labels: ['Ashland', 'DFE Pharma', 'Fuji Chemical', 'Croda', 'Danisco', 'West', 'Other'],
+            datasets: [{
+                data: [27.1, 17.4, 26.5, 2.1, 2.3, 21.2, 42.4],
+                backgroundColor: [
+                    '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#34d399', '#fbbf24', '#94a3b8'
+                ],
+                borderWidth: 3,
+                borderColor: '#0f172a',
+                hoverOffset: 30,
+                hoverBorderWidth: 4,
+                hoverBorderColor: '#ffffff'
+            }]
+        };
+
+        new Chart(commissionCtx, {
+            type: 'pie',
+            data: commissionData,
+            plugins: [segmentLabelPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#60a5fa',
+                        bodyColor: '#e2e8f0',
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: $${context.raw}K (${((context.raw/139.4)*100).toFixed(1)}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // Create direct labels below charts
+        function createLabels(containerId, labels, colors, values, suffix = 'M') {
+            const container = document.getElementById(containerId);
+            labels.forEach((label, index) => {
+                const labelElement = document.createElement('div');
+                labelElement.className = 'chart-label';
+                labelElement.innerHTML = `
+                    <div class="label-color" style="background-color: ${colors[index]}"></div>
+                    <span>${label}</span>
+                    <span style="color: #60a5fa; margin-left: 5px;">$${values[index]}${suffix}</span>
+                `;
+                container.appendChild(labelElement);
+            });
+        }
+
+        // Initialize labels
+        createLabels('productsLabels', 
+            productsData.labels, 
+            productsData.datasets[0].backgroundColor,
+            productsData.datasets[0].data,
+            'M'
+        );
+
+        createLabels('commissionLabels', 
+            commissionData.labels, 
+            commissionData.datasets[0].backgroundColor,
+            commissionData.datasets[0].data,
+            'K'
+        );
+
+        // Sales Trend Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep 2025'],
+                datasets: [{
+                    label: 'Monthly Sales ($M)',
+                    data: [33.6, 52.7, 46.2, 41.0, 75.7],
+                    borderColor: '#60a5fa',
+                    backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#60a5fa',
+                    pointBorderColor: '#0f172a',
+                    pointBorderWidth: 3,
+                    pointRadius: 8,
+                    pointHoverRadius: 12,
+                    pointHoverBackgroundColor: '#a78bfa',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Performers Chart
+        const performersCtx = document.getElementById('performersChart').getContext('2d');
+        new Chart(performersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Salehin', 'Tushar', 'Usha', 'Mohaimen', 'Angon'],
+                datasets: [{
+                    data: [42.9, 23.8, 5.7, 1.8, 1.5],
+                    backgroundColor: [
+                        '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#34d399'
+                    ],
+                    borderWidth: 0,
+                    borderRadius: 12,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255,255,255,0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Add hover effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const containers = document.querySelectorAll('.chart-container, .table-container');
+            containers.forEach(container => {
+                container.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                container.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
