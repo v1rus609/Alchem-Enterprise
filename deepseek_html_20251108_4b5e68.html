@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alchem Enterprise | Revenue Intelligence Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-elevated: #020617;
+      --bg-card: rgba(15, 23, 42, 0.95);
+      --border-subtle: rgba(148, 163, 184, 0.2);
+      --accent: #60a5fa;
+      --accent-soft: rgba(96, 165, 250, 0.18);
+      --accent-secondary: #a78bfa;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --danger: #f97373;
+      --success: #22c55e;
+      --warning: #fbbf24;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.7);
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #0f172a 0%, #020617 55%);
+      color: var(--text-main);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 18px;
+      width: 100%;
+      max-width: 1500px;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      background: linear-gradient(145deg, #020617 0%, #020617 60%, #020617 100%);
+      border-radius: var(--radius-xl);
+      padding: 20px 18px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 10px 12px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, #1d283a 0%, transparent 55%);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 16px;
+      background: conic-gradient(
+        from 220deg,
+        #60a5fa,
+        #a78bfa,
+        #f97316,
+        #22c55e,
+        #60a5fa
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1220;
+      font-weight: 800;
+      font-size: 1.2rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.8);
+    }
+
+    .brand-text h1 {
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 11px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      transition: background var(--transition-fast),
+        color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .nav-item span.icon {
+      width: 24px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background: linear-gradient(
+        120deg,
+        rgba(96, 165, 250, 0.16),
+        rgba(15, 23, 42, 0.9)
+      );
+      color: var(--text-main);
+      transform: translateX(2px);
+    }
+
+    .sidebar-panel {
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, #0f172a 0%, #020617 60%);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .sidebar-panel h3 {
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-panel p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-muted);
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.6);
+      transition: background var(--transition-fast),
+        border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .pill.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(37, 99, 235, 0.12);
+    }
+
+    .pill:hover {
+      border-color: var(--accent-secondary);
+      color: var(--accent-secondary);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.3);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }
+
+    /* MAIN LAYOUT */
+
+    .main {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), #020617);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 16px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 4px 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.35);
+      margin-bottom: 2px;
+    }
+
+    .topbar-left h2 {
+      font-size: 1.15rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .topbar-left h3 {
+      margin-top: 4px;
+      font-size: 1.3rem;
+      background: linear-gradient(120deg, #e5e7eb, #c4b5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .topbar-left p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: radial-gradient(circle at top left, #60a5fa 0%, #4f46e5 50%, #1d4ed8 100%);
+      color: #0b1120;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.55);
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    }
+
+    .btn-primary span.icon {
+      font-size: 1rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 15px 36px rgba(37, 99, 235, 0.75);
+    }
+
+    /* KPI GRID */
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: radial-gradient(circle at top, #0b1120 0%, #020617 55%);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition-fast),
+        border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      opacity: 0;
+      background: conic-gradient(
+        from 180deg,
+        rgba(96, 165, 250, 0.35),
+        transparent,
+        transparent,
+        rgba(168, 85, 247, 0.3),
+        transparent,
+        transparent
+      );
+      transition: opacity 0.2s ease-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(96, 165, 250, 0.8);
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    .kpi-card:hover::after {
+      opacity: 0.75;
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .kpi-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+
+    .kpi-pill {
+      font-size: 0.7rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+
+    .kpi-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .kpi-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+    }
+
+    .kpi-change.positive {
+      color: var(--success);
+    }
+
+    .kpi-change.negative {
+      color: var(--danger);
+    }
+
+    .sparkline {
+      position: relative;
+      height: 34px;
+      margin-top: 4px;
+    }
+
+    .sparkline canvas {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* CONTENT GRID */
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .panel-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .panel-metric {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .panel-metric strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .panel-body {
+      margin-top: 4px;
+      height: 210px;
+      position: relative;
+    }
+
+    .panel-body canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .panel-tag {
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+    }
+
+    .panel-tag strong {
+      color: var(--accent);
+    }
+
+    /* TABLE SECTION */
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .table-panel {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      padding: 14px 14px 8px;
+      overflow: hidden;
+    }
+
+    .table-panel header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .table-panel h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .table-panel span.caption {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.82rem;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    th,
+    td {
+      padding: 7px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+    }
+
+    th {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    tbody tr:hover {
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .customer-name {
+      font-weight: 600;
+    }
+
+    .value {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+      min-width: 70px;
+    }
+
+    .badge.success {
+      background: rgba(22, 163, 74, 0.18);
+      border-color: rgba(34, 197, 94, 0.5);
+      color: #bbf7d0;
+    }
+
+    .badge.neutral {
+      background: rgba(148, 163, 184, 0.13);
+      border-color: rgba(148, 163, 184, 0.5);
+      color: #e5e7eb;
+    }
+
+    .badge.danger {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+    }
+
+    .badge.star {
+      background: radial-gradient(circle at top, #facc15 0%, #f97316 70%);
+      color: #0f172a;
+      font-weight: 700;
+      border-color: rgba(250, 204, 21, 0.8);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+@media (max-width: 600px) {
+  body {
+    padding: 8px;
+  }
+
+  .main {
+    padding: 10px 10px 14px;
+    border-radius: 18px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+    padding: 10px 10px 14px;
+    margin: 0 0 8px;
+    background: radial-gradient(circle at top, #020617 0%, #020617 70%);
+    border-radius: 16px;
+  }
+
+  .topbar-left h2 {
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+  }
+
+  .topbar-left h3 {
+    font-size: 1.05rem;
+    margin-top: 2px;
+  }
+
+  .topbar-left p {
+    font-size: 0.78rem;
+    max-width: 260px;
+    margin: 2px auto 0;
+    color: #9ca3af;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-top: 4px;
+    gap: 8px;
+  }
+
+  .topbar-right::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .topbar-right::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.6);
+    border-radius: 999px;
+  }
+
+  .chip,
+  .btn-primary {
+    flex-shrink: 0;
+  }
+
+  .btn-primary {
+    padding: 7px 13px;
+    font-size: 0.75rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .content-grid,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">Ae</div>
+        <div class="brand-text">
+          <h1>Alchem Enterprise</h1>
+          <p>Revenue Intelligence Hub</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="sidebar-section-title">Overview</p>
+        <nav class="sidebar-nav">
+          <div class="nav-item active">
+            <span class="icon">📊</span>
+            <span>Executive Summary</span>
+          </div>
+          <div class="nav-item">
+            <span class="icon">📦</span>
+            <span>Product Insights</span>
+          </div>
+          <div class="nav-item">
+            <span class="icon">🤝</span>
+            <span>Customer Performance</span>
+          </div>
+          <div class="nav-item">
+            <span class="icon">👤</span>
+            <span>Sales Team</span>
+          </div>
+        </nav>
+      </div>
+
+      <div class="sidebar-panel">
+        <h3>Snapshot · September 2025</h3>
+        <p>Total sales reached <strong>$75.7M</strong> with
+          <strong>124.8%</strong> target achievement and commission income of
+          <strong>$139.4K</strong>.
+        </p>
+        <div class="pill-row">
+          <button class="pill active">September 2025</button>
+          <button class="pill">Last 5 months</button>
+          <button class="pill">Year to date</button>
+        </div>
+      </div>
+
+      <div class="sidebar-panel">
+        <h3>Key Highlights</h3>
+        <p>
+          Highest sales: <strong>Salehin Bin Mahmud</strong> at
+          <strong>$42.9M</strong>. Top customer:
+          <strong>ACI ($21.09M)</strong>.
+        </p>
+      </div>
+
+      <div class="sidebar-footer">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="status-dot"></div>
+          <span>Live data mode</span>
+        </div>
+        <span style="font-size:0.78rem;">Ver. 1.0 · 09/2025</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- TOPBAR -->
+      <section class="topbar">
+        <div class="topbar-left">
+          <h2>Financial dashboard</h2>
+          <h3>Premium analytics · Pharma portfolio</h3>
+          <p>Consolidated performance for Bangladesh operations, September 2025.</p>
+        </div>
+        <div class="topbar-right">
+          <div class="chip">
+            Period:
+            <strong>September 2025</strong>
+          </div>
+          <div class="chip">
+            Achievement:
+            <strong>124.8%</strong>
+          </div>
+          <button class="btn-primary">
+            <span class="icon">⤓</span>
+            <span>Export report</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- KPI CARDS -->
+      <section class="kpi-grid">
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Total sales</span>
+            <span class="kpi-pill">All customers</span>
+          </div>
+          <div class="kpi-value">$75.72M</div>
+          <div class="kpi-meta">
+            <span>Month close · Sept 2025</span>
+            <span class="kpi-change positive">
+              ▲ 84.6%
+            </span>
+          </div>
+          <div class="sparkline">
+            <canvas id="sparklineSales"></canvas>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Target achievement</span>
+            <span class="kpi-pill">Vs. plan</span>
+          </div>
+          <div class="kpi-value">124.8%</div>
+          <div class="kpi-meta">
+            <span>Exceeded by <strong>24.8%</strong></span>
+            <span class="kpi-change positive">
+              ▲ On track
+            </span>
+          </div>
+          <div class="sparkline">
+            <canvas id="sparklineTarget"></canvas>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Commission income</span>
+            <span class="kpi-pill">Suppliers</span>
+          </div>
+          <div class="kpi-value">$139.4K</div>
+          <div class="kpi-meta">
+            <span>Supplier incentives</span>
+            <span class="kpi-change positive">
+              ▲ 77.9%
+            </span>
+          </div>
+          <div class="sparkline">
+            <canvas id="sparklineCommission"></canvas>
+          </div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-label">Active customers</span>
+            <span class="kpi-pill">45 orders</span>
+          </div>
+          <div class="kpi-value">36</div>
+          <div class="kpi-meta">
+            <span>Top 5 drive majority of sales</span>
+            <span class="kpi-change positive">▲ Healthy base</span>
+          </div>
+          <div class="sparkline">
+            <canvas id="sparklineCustomers"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <!-- CHARTS ROW 1 -->
+      <section class="content-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <h3 class="panel-title">Monthly sales trend</h3>
+              <p class="panel-subtitle">Performance across the last five months</p>
+            </div>
+            <p class="panel-metric">
+              Latest: <strong>$75.7M</strong> in September
+            </p>
+          </div>
+          <div class="panel-body">
+            <canvas id="salesTrendChart"></canvas>
+          </div>
+          <div class="panel-tag-row">
+            <span class="panel-tag"><strong>May–Sept 2025</strong></span>
+            <span class="panel-tag">Spike driven by ACI, Renata, Eskayef</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <h3 class="panel-title">Product mix by revenue</h3>
+              <p class="panel-subtitle">Share of top products in total sales</p>
+            </div>
+            <p class="panel-metric">
+              Top 6 contribute <strong>72.6%</strong>
+            </p>
+          </div>
+          <div class="panel-body">
+            <canvas id="productMixChart"></canvas>
+          </div>
+          <div class="panel-tag-row">
+            <span class="panel-tag">Polyplasdone XL, Etocas 35 lead the portfolio</span>
+            <span class="panel-tag">“Others” includes long-tail SKUs</span>
+          </div>
+        </article>
+      </section>
+
+      <!-- CHARTS ROW 2 -->
+      <section class="content-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <h3 class="panel-title">Commission by supplier</h3>
+              <p class="panel-subtitle">Distribution of $139.4K commission income</p>
+            </div>
+            <p class="panel-metric">
+              Top 3: <strong>Ashland, Fuji, West</strong>
+            </p>
+          </div>
+          <div class="panel-body">
+            <canvas id="commissionChart"></canvas>
+          </div>
+          <div class="panel-tag-row">
+            <span class="panel-tag">Supports supplier negotiation strategy</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <h3 class="panel-title">Sales team performance</h3>
+              <p class="panel-subtitle">Top performers in September 2025</p>
+            </div>
+            <p class="panel-metric">
+              Leader: <strong>Salehin · $42.9M</strong>
+            </p>
+          </div>
+          <div class="panel-body">
+            <canvas id="performersChart"></canvas>
+          </div>
+          <div class="panel-tag-row">
+            <span class="panel-tag">Concentration risk and coaching opportunities</span>
+          </div>
+        </article>
+      </section>
+
+      <!-- TABLES -->
+      <section class="bottom-grid">
+        <article class="table-panel">
+          <header>
+            <h3>Top 5 customers</h3>
+            <span class="caption">September 2025</span>
+          </header>
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Sales (M)</th>
+                <th>Growth</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="customer-name">ACI</td>
+                <td class="value">$21.09M</td>
+                <td>
+                  <span class="badge success">▲ 100.7%</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="customer-name">Renata PLC</td>
+                <td class="value">$18.02M</td>
+                <td>
+                  <span class="badge success">▲ 580.4%</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="customer-name">Eskayef Pharma</td>
+                <td class="value">$12.29M</td>
+                <td>
+                  <span class="badge success">▲ 112.6%</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="customer-name">Radiant Pharma</td>
+                <td class="value">$9.20M</td>
+                <td>
+                  <span class="badge neutral">New</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="customer-name">Square LifeSciences</td>
+                <td class="value">$3.74M</td>
+                <td>
+                  <span class="badge neutral">0%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="table-panel">
+          <header>
+            <h3>Sales team leaderboard</h3>
+            <span class="caption">Commissionable sales volume</span>
+          </header>
+          <table>
+            <thead>
+              <tr>
+                <th>Salesperson</th>
+                <th>Sales (M)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="customer-name">Salehin Bin Mahmud</td>
+                <td class="value">$42.90M</td>
+                <td><span class="badge star">Star</span></td>
+              </tr>
+              <tr>
+                <td class="customer-name">Ahsan Uddin Tushar</td>
+                <td class="value">$23.83M</td>
+                <td><span class="badge success">▲ 131.7%</span></td>
+              </tr>
+              <tr>
+                <td class="customer-name">Rahima Hasan Usha</td>
+                <td class="value">$5.66M</td>
+                <td><span class="badge danger">▼ 54.8%</span></td>
+              </tr>
+              <tr>
+                <td class="customer-name">Mohaimen</td>
+                <td class="value">$1.85M</td>
+                <td><span class="badge success">▲ 43.8%</span></td>
+              </tr>
+              <tr>
+                <td class="customer-name">Angon Mridha</td>
+                <td class="value">$1.48M</td>
+                <td><span class="badge success">▲ 132.0%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Shared chart defaults
+    Chart.defaults.color = "#94a3b8";
+    Chart.defaults.font.family = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+    const gridColor = "rgba(148, 163, 184, 0.2)";
+
+    // Sparkline helper
+    function createSparkline(id, data) {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.map((_, i) => i + 1),
+          datasets: [
+            {
+              data,
+              borderColor: "#60a5fa",
+              backgroundColor: "rgba(96, 165, 250, 0.12)",
+              borderWidth: 1.5,
+              tension: 0.4,
+              pointRadius: 0,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
+          scales: {
+            x: {
+              display: false,
+              grid: { display: false }
+            },
+            y: {
+              display: false,
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // KPI sparklines (fake small trends just for shape)
+    createSparkline("sparklineSales", [33.6, 52.7, 46.2, 41.0, 75.7]);
+    createSparkline("sparklineTarget", [92, 103, 97, 115, 124.8]);
+    createSparkline("sparklineCommission", [45, 58, 70, 78, 139.4]);
+    createSparkline("sparklineCustomers", [22, 27, 29, 32, 36]);
+
+    // Sales trend chart
+    const salesTrendCtx = document.getElementById("salesTrendChart");
+    new Chart(salesTrendCtx, {
+      type: "line",
+      data: {
+        labels: ["May", "Jun", "Jul", "Aug", "Sep 2025"],
+        datasets: [
+          {
+            label: "Monthly sales ($M)",
+            data: [33.6, 52.7, 46.2, 41.0, 75.7],
+            borderColor: "#60a5fa",
+            backgroundColor: "rgba(96, 165, 250, 0.12)",
+            borderWidth: 3,
+            pointBackgroundColor: "#1d4ed8",
+            pointBorderColor: "#e5e7eb",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            tension: 0.35,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.96)",
+            borderColor: "#60a5fa",
+            borderWidth: 1,
+            padding: 8
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: "#cbd5f5" }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: "#cbd5f5",
+              callback: function (value) {
+                return "$" + value + "M";
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Product mix doughnut
+    const productMixCtx = document.getElementById("productMixChart");
+    new Chart(productMixCtx, {
+      type: "doughnut",
+      data: {
+        labels: [
+          "Polyplasdone XL",
+          "Etocas 35",
+          "PVP Iodine",
+          "Pharmatose 350M",
+          "Fujicalin",
+          "Klucel LF",
+          "Others"
+        ],
+        datasets: [
+          {
+            data: [14.8, 12.7, 6.6, 5.4, 4.5, 4.3, 27.4],
+            backgroundColor: [
+              "#60a5fa",
+              "#a78bfa",
+              "#f472b6",
+              "#fb7185",
+              "#22c55e",
+              "#fbbf24",
+              "#94a3b8"
+            ],
+            borderColor: "#020617",
+            borderWidth: 2,
+            hoverOffset: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "58%",
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 10
+            }
+          },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.96)",
+            borderColor: "#60a5fa",
+            borderWidth: 1,
+            callbacks: {
+              label: function (ctx) {
+                const raw = ctx.raw;
+                const total = 75.7;
+                const pct = ((raw / total) * 100).toFixed(1);
+                return `${ctx.label}: $${raw}M (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Commission bar
+    const commissionCtx = document.getElementById("commissionChart");
+    new Chart(commissionCtx, {
+      type: "bar",
+      data: {
+        labels: ["Ashland", "DFE Pharma", "Fuji Chemical", "Croda", "Danisco", "West", "Other"],
+        datasets: [
+          {
+            label: "Commission ($K)",
+            data: [27.1, 17.4, 26.5, 2.1, 2.3, 21.2, 42.4],
+            backgroundColor: [
+              "#60a5fa",
+              "#a78bfa",
+              "#f472b6",
+              "#fb7185",
+              "#22c55e",
+              "#fbbf24",
+              "#94a3b8"
+            ],
+            borderRadius: 6,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.96)",
+            borderColor: "#60a5fa",
+            borderWidth: 1,
+            callbacks: {
+              label: function (ctx) {
+                const raw = ctx.raw;
+                const total = 139.4;
+                const pct = ((raw / total) * 100).toFixed(1);
+                return `${ctx.label}: $${raw}K (${pct}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: {
+              callback: function (value) {
+                return "$" + value + "K";
+              }
+            }
+          },
+          y: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // Performers chart
+    const performersCtx = document.getElementById("performersChart");
+    new Chart(performersCtx, {
+      type: "bar",
+      data: {
+        labels: ["Salehin", "Tushar", "Usha", "Mohaimen", "Angon"],
+        datasets: [
+          {
+            label: "Sales ($M)",
+            data: [42.9, 23.8, 5.7, 1.8, 1.5],
+            backgroundColor: ["#60a5fa", "#a78bfa", "#f472b6", "#fb7185", "#22c55e"],
+            borderRadius: 8,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.96)",
+            borderColor: "#60a5fa",
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              callback: function (value) {
+                return "$" + value + "M";
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
